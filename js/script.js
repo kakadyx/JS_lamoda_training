@@ -59,11 +59,13 @@ modal.addEventListener('click', event => {
 
 //запрос бд
 
-const getGoods = (callback, value) => {
+const getGoods = (callback,prop, value) => {
+    console.log(value)
+    console.log(prop)
     getData()
         .then( data => {
             if (value) {
-                callback(data.filter(item => item.category===value))
+                callback(data.filter(item => {return item[prop]===value}))
             }else{ callback(data) }
         })
         .catch(e=>{console.error(e)})
@@ -108,11 +110,6 @@ try {
     const renderGoodsList = data => {
         goodsList.innerHTML = '';
         
-
-        // for (let i=0; i< data.length; i++){
-        //     console.log(data[i])
-        // }
-
         for (const item of data){
             const card  = createCard(item);
             goodsList.append(card)
@@ -122,18 +119,95 @@ try {
 
     window.addEventListener('hashchange', ()=>{
         hash = location.hash.substring(1);
-        getGoods(renderGoodsList, hash);
+        getGoods(renderGoodsList,'category',hash);
         goodsTitle = document.querySelector('.goods__title');
         if (hash ==='men'){
             goodsTitle.textContent = 'Мужчинам'
         } else if (hash==='kids') {
             goodsTitle.textContent = 'Детям'
-        } else {
+        } else if (hash==='women'){
             goodsTitle.textContent = 'Женщинам'
+        }else if (hash===''){
+            goods.goodsTitle = 'Мужчинам'
         }
     })
-    getGoods(renderGoodsList, hash);
+    getGoods(renderGoodsList,'category', hash);
     
 } catch (err) {
     console.warn(err)
+}
+
+// страница категорий
+
+try{
+   
+
+}catch(error){
+    console.warn(error)
+}
+
+//страница товара
+
+try{
+    if(!document.querySelector('.card-good')){
+        throw 'This is not a card-good page'
+    }
+    const cardGoodImage = document.querySelector('.card-good__image');
+    const cardGoodBrand = document.querySelector('.card-good__brand');
+    const cardGoodTitle = document.querySelector('.card-good__title');
+    const cardGoodPrice = document.querySelector('.card-good__price');
+    const cardGoodColor = document.querySelector('.card-good__color');
+    const cardGoodColorList = document.querySelector('.card-good__color-list');
+    const cardGoodSizes = document.querySelector('.card-good__sizes');
+    const cardGoodSizesList = document.querySelector('.card-good__sizes-list');
+    const cardGoodBuy = document.querySelector('.card-good__buy');
+    const cardGoodSelectWrapper = document.querySelectorAll('.card-good__select__wrapper');
+
+    const generateList = (arr) => arr.reduce((html, item, index)=> {
+       return html + `<li class="card-good__select-item " data-id="${i}">${item}</li>`
+    }, '')
+
+    const renderCardGood = ([{brand,name,cost,color,sizes,photo}]) => {
+
+        cardGoodImage.src = 'goods-image/'+photo;
+        cardGoodImage.alt = `${brand} ${name}`
+        cardGoodBrand.textContent = brand;
+        cardGoodTitle.textContent = name
+        cardGoodPrice.textContent = cost
+        if(color){
+            cardGoodColor.textContent = color[0];
+            cardGoodColor.dataset.id = 0;
+            cardGoodColorList.innerHTML = generateList(color);
+
+        }else{
+            cardGoodColor.style.display = 'none'
+        }
+        if(sizes){
+            cardGoodSizes.textContent = sizes[0]
+            cardGoodSizes.dataset.id = 0;
+            cardGoodSizesList.innerHTML = generateList(sizes);
+        }else{
+            cardGoodSizes.style.display = 'none'
+        }
+        
+   
+    }
+
+
+    cardGoodSelectWrapper.forEach(item => item.addEventListener('click', event=>{
+        if (event.target.closest('.card-good__select')){
+            event.target.classList.toggle('card-good__select__open');
+        }
+        if (event.target.closest('.card-good__select-item')){
+            const cardGoodSelect = item.querySelector('.card-good__select');
+            cardGoodSelect.textContent = event.target.textContent;
+            cardGoodSelect.dataset.id = event.target.dataset.id;
+            cardGoodSelect.classList.remove('card-good__select__open')
+
+        }
+    }))
+    getGoods(renderCardGood, 'id', hash)
+
+}catch(error){
+    console.warn(error)
 }
